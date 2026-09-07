@@ -1,48 +1,22 @@
-name: Deploy to GitHub Pages
-
+name: Deploy HTML
 on:
   push:
     branches: [main]
-  workflow_dispatch:
-
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
+  contents: write
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install dependencies
-        run: npm install
-      - name: Generate fund data
-        run: python3 generate_funds.py
-      - name: Build site
-        run: node build.mjs
-      - name: List dist
-        run: ls -la dist/
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Decode and deploy
+        run: |
+          if [ -f deploy_data.txt ]; then
+            base64 -d deploy_data.txt | gzip -d > index.html
+            rm deploy_data.txt
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "Deploy self-contained app to GitHub Pages"
+            git push
+          fi
