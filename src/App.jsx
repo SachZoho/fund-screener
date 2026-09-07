@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
-import { FUNDS } from './data/funds';
+import { useMemo, useState, useEffect } from 'react';
 import useTheme from './hooks/useTheme';
 import FilterPanel from './components/FilterPanel';
 import FundTable from './components/FundTable';
 import StatsBar from './components/StatsBar';
 import DetailDrawer from './components/DetailDrawer';
+import { mapGrowwFundToSchema, fundNameToSlug } from './utils/groww-mapper';
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -21,6 +21,10 @@ const DEFAULT_FILTERS = {
 
 export default function App() {
   const { dark, toggle } = useTheme();
+  const [funds, setFunds] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [sort, setSort] = useState({ field: 'consistencyScore', dir: 'desc' });
   const [selected, setSelected] = useState(null);
@@ -28,8 +32,53 @@ export default function App() {
   const [page, setPage] = useState(1);
   const pageSize = 25;
 
+  const fetchFunds = async (forceRefresh = false) => {
+    try {
+      setIsLoading(forceRefresh ? false : true);
+      if (forceRefresh) setIsRefreshing(true);
+
+      const url = `/.netlify/functions/get-funds${forceRefresh ? '?refresh=true' : ''}`;
+      const response = await fetch(url);
+
+      if (!response.ok) throw new Error('Failed to fetch fund data');
+
+      const rawData = await response.json();
+
+      // Handle different possible API response structures
+      const fundList = Array.isArray(rawData) ? rawData : (rawData.data || []);
+      const mappedFunds = fundList.map(mapGrowwFundToSchema);
+
+      setFunds(mappedFunds);
+      setError(null);
+
+      // Handle deep linking: check if URL hash contains a fund slug
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#fund/')) {
+        const slug = hash.replace('#fund/', '');
+        const matchedFund = mappedFunds.find(f => fundNameToSlug(f.name) === slug);
+        if (matchedFund) setSelected(matchedFund);
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFunds();
+  }, []);
+
+  const handleRefresh = () => {
+    if (window.confirm("Updating fund data will reset your current view. This may take a few minutes. Continue?")) {
+      fetchFunds(true);
+    }
+  };
+
   const filtered = useMemo(() => {
-    let r = FUNDS.filter((f) => {
+    let r = funds.filter((f) => {
       if (filters.search) {
         const q = filters.search.toLowerCase();
         if (!f.name.toLowerCase().includes(q) && !f.amcShort.toLowerCase().includes(q)) return false;
@@ -58,7 +107,7 @@ export default function App() {
       return (av - bv) * dir;
     });
     return r;
-  }, [filters, sort]);
+  }, [funds, filters, sort]);
 
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -104,6 +153,34 @@ export default function App() {
     (filters.minRating > 0 ? 1 : 0) +
     (filters.consistentOnly ? 1 : 0);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-brand-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Loading mutual funds...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950 px-4">
+        <div className="text-center max-w-md">
+          <div className="text-red-500 mb-4">
+            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Something went wrong</h2>
+          <p className="text-slate-500 dark:text-slate-400 mb-6">{error}</p>
+          <button onClick={() => fetchFunds()} className="px-4 py-2 rounded-lg bg-brand-600 text-white font-medium">Try Again</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
@@ -120,8 +197,18 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition disabled:opacity-50"
+              aria-label="Refresh data"
+            >
+              <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 00-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
             <div className="hidden sm:block text-sm text-slate-400">
-              {filtered.length} of {FUNDS.length} funds
+              {filtered.length} of {funds.length} funds
             </div>
             <button
               onClick={toggle}
@@ -148,7 +235,7 @@ export default function App() {
           <br className="hidden sm:block" /> not just short-term winners.
         </h2>
         <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-2xl">
-          Screen {FUNDS.length} Indian mutual funds by fund age, max drawdown, expense ratio,
+          Screen {funds.length} Indian mutual funds by fund age, max drawdown, expense ratio,
           Sharpe ratio and more — to surface funds that have stayed durable across cycles.
         </p>
       </section>
@@ -204,7 +291,7 @@ export default function App() {
 
           <div className="space-y-5 min-w-0">
             <StatsBar funds={filtered} />
-            <FundTable funds={paged} sort={sort} onSort={onSort} onSelect={setSelected} />
+            <FundTable funds={paged} sort={sort} onSort={onSort} onSelect={setSelected} selectedId={selected?.id} />
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 pt-2">
                 <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 transition">← Prev</button>

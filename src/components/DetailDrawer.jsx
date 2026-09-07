@@ -2,6 +2,7 @@ import {
   fmtPct, fmtNum, fmtCr, fmtNav, fmtAge,
   categoryColor, returnColor, drawdownColor,
 } from '../utils/format';
+import { fundNameToSlug } from '../utils/groww-mapper';
 
 function Row({ label, value, accent }) {
   return (
@@ -55,6 +56,7 @@ function EquityCurve({ fund }) {
 
 export default function DetailDrawer({ fund, onClose }) {
   if (!fund) return null;
+  const growwUrl = `https://groww.in/mutual-funds/${fundNameToSlug(fund.name)}`;
   return (
     <>
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 animate-fade-in" onClick={onClose} />
@@ -73,13 +75,24 @@ export default function DetailDrawer({ fund, onClose }) {
             </svg>
           </button>
         </div>
-
         <div className="px-6 py-5 space-y-5">
+          <div className="flex justify-end">
+            <a
+              href={growwUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
+            >
+              View on Groww
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
           <div>
             <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Simulated Equity Curve</div>
             <EquityCurve fund={fund} />
           </div>
-
           <div>
             <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Returns</div>
             <div className="grid grid-cols-3 gap-2">
@@ -94,7 +107,6 @@ export default function DetailDrawer({ fund, onClose }) {
               })}
             </div>
           </div>
-
           <div>
             <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Risk & Performance</div>
             <Row label="Max Drawdown" value={fmtPct(fund.maxDrawdown)} accent={drawdownColor(fund.maxDrawdown)} />
@@ -104,7 +116,6 @@ export default function DetailDrawer({ fund, onClose }) {
             <Row label="Alpha" value={fmtPct(fund.alpha, 2)} accent={fund.alpha >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'} />
             <Row label="Beta" value={fmtNum(fund.beta)} />
           </div>
-
           <div>
             <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Fund Details</div>
             <Row label="Fund Age" value={fmtAge(fund.fundAgeYears)} />
@@ -116,7 +127,6 @@ export default function DetailDrawer({ fund, onClose }) {
             <Row label="Star Rating" value={'★'.repeat(fund.rating) + '☆'.repeat(5 - fund.rating)} />
             <Row label="Consistency Score" value={fund.consistencyScore} accent="text-brand-600 dark:text-brand-400" />
           </div>
-
           <p className="text-xs text-slate-400 leading-relaxed">Illustrative data for demonstration. Not investment advice. Always verify with official fund factsheets before investing.</p>
         </div>
       </aside>
