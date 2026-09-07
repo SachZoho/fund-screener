@@ -55,7 +55,7 @@ function SortHeader({ label, field, sort, onSort, className = '' }) {
   );
 }
 
-export default function FundTable({ funds, sort, onSort, onSelect }) {
+export default function FundTable({ funds, sort, onSort, onSelect, selectedId }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-card">
       <table className="w-full text-sm">
@@ -78,7 +78,11 @@ export default function FundTable({ funds, sort, onSort, onSelect }) {
             <tr
               key={f.id}
               onClick={() => onSelect(f)}
-              className="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition"
+              className={`border-b border-slate-100 dark:border-slate-800/60 cursor-pointer transition ${
+                selectedId === f.id
+                  ? 'bg-brand-50 dark:bg-brand-900/20 ring-1 ring-inset ring-brand-200 dark:ring-brand-800'
+                  : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+              }`}
             >
               <td className="px-4 py-3">
                 <div className="font-semibold text-slate-800 dark:text-slate-100">{f.name}</div>

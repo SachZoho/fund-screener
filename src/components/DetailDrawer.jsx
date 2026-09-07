@@ -43,6 +43,10 @@ function EquityCurve({ fund }) {
           <stop offset="100%" stopColor={stroke} stopOpacity="0" />
         </linearGradient>
       </defs>
+      {/* Grid lines */}
+      {[0, 0.25, 0.5, 0.75, 1].map(frac => (
+        <line key={frac} x1="0" y1={frac * h} x2={w} y2={frac * h} stroke="currentColor" className="text-slate-200 dark:text-slate-800" strokeWidth="0.5" />
+      ))}
       <path d={`${path} L${w},${h} L0,${h} Z`} fill={`url(#grad-${fund.id})`} />
       <path d={path} fill="none" stroke={stroke} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
     </svg>

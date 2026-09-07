@@ -75,6 +75,24 @@ export default function App() {
     setPage(1);
   };
 
+  const downloadCSV = () => {
+    const headers = ['Name', 'Category', 'SubCategory', 'AMC', '3Y Return %', '5Y Return %', 'Max Drawdown %', 'Expense Ratio %', 'Sharpe Ratio', 'Age (Yrs)', 'AUM (Cr)', 'Rating', 'Consistency Score'];
+    const rows = filtered.map(f => [
+      f.name, f.category, f.subCategory, f.amcShort, f.returns3Y, f.returns5Y, f.maxDrawdown, f.expenseRatio, f.sharpeRatio, f.fundAgeYears, f.aum, f.rating, f.consistencyScore
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `fundlens_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const activeFilterCount =
     (filters.categories.length ? 1 : 0) +
     (filters.minAge > 0 ? 1 : 0) +
@@ -136,29 +154,40 @@ export default function App() {
       </section>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex gap-3 mb-6">
-          <div className="relative flex-1">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              value={filters.search}
-              onChange={(e) => { setFilters((f) => ({ ...f, search: e.target.value })); setPage(1); }}
-              placeholder="Search fund name or AMC…"
-              className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition"
-            />
+          <div className="flex gap-3 mb-6">
+            <div className="relative flex-1">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                value={filters.search}
+                onChange={(e) => { setFilters((f) => ({ ...f, search: e.target.value })); setPage(1); }}
+                placeholder="Search fund name or AMC…"
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={downloadCSV}
+                className="hidden sm:flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export
+              </button>
+              <button
+                onClick={() => setShowFilters((s) => !s)}
+                className="px-4 py-3 rounded-xl bg-brand-600 text-white text-sm font-medium flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.59a1 1 0 01-.29.7l-6.42 6.43a1 1 0 00-.29.7V19l-4 2v-5.58a1 1 0 00-.29-.7L3.29 7.29A1 1 0 013 6.59V4z" />
+                </svg>
+                Filters {activeFilterCount > 0 && <span className="bg-white/20 px-1.5 rounded-full text-xs">{activeFilterCount}</span>}
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => setShowFilters((s) => !s)}
-            className="lg:hidden px-4 py-3 rounded-xl bg-brand-600 text-white text-sm font-medium flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.59a1 1 0 01-.29.7l-6.42 6.43a1 1 0 00-.29.7V19l-4 2v-5.58a1 1 0 00-.29-.7L3.29 7.29A1 1 0 013 6.59V4z" />
-            </svg>
-            Filters {activeFilterCount > 0 && <span className="bg-white/20 px-1.5 rounded-full text-xs">{activeFilterCount}</span>}
-          </button>
-        </div>
 
         <div className="grid lg:grid-cols-[280px_1fr] gap-6">
           <aside className={`lg:block ${showFilters ? 'block' : 'hidden'}`}>
@@ -175,7 +204,7 @@ export default function App() {
 
           <div className="space-y-5 min-w-0">
             <StatsBar funds={filtered} />
-            <FundTable funds={paged} sort={sort} onSort={onSort} onSelect={setSelected} />
+            <FundTable funds={paged} sort={sort} onSort={onSort} onSelect={setSelected} selectedId={selected?.id} />
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 pt-2">
                 <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 transition">← Prev</button>
