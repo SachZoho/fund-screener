@@ -62,25 +62,25 @@ await esbuild.build({
 // 3. Copy favicon
 fs.copyFileSync('public/favicon.svg', 'dist/favicon.svg');
 
-// 4. Generate index.html
+// 4. Generate index.html (relative paths for GitHub Pages compatibility)
 const html = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Screener for Indian mutual funds — filter by fund age, max drawdown, expense ratio and consistency to find durable performers." />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="./styles.css" />
     <title>FundLens · Mutual Fund Screener</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/main.js"></script>
+    <script type="module" src="./main.js"></script>
   </body>
 </html>`;
 fs.writeFileSync('dist/index.html', html);
 
-// 5. Add netlify redirects for SPA
+// 5. Add netlify redirects for SPA (ignored by GitHub Pages, harmless)
 fs.writeFileSync('dist/_redirects', '/*    /index.html   200\n');
 
 // cleanup
