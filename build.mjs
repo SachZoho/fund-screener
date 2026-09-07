@@ -19,11 +19,10 @@ const cssInput = `@import url('https://fonts.googleapis.com/css2?family=Inter:wg
 @tailwind components;
 @tailwind utilities;`;
 
-const result = await postcss([tailwindcss('./tailwind.config.js'), autoprefixer()]).process(cssInput, {
+const result = await postcss([tailwindcss('./tailwind.config.cjs'), autoprefixer()]).process(cssInput, {
   from: undefined,
 });
 let css = result.css;
-// minify manually (simple approach)
 css = css.replace(/\s+/g, ' ').replace(/;\s*}/g, '}').replace(/\{\s*/g, '{').replace(/\s*:\s*/g, ':').replace(/\s*;\s*/g, ';');
 
 const customCss = `
