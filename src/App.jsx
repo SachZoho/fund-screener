@@ -4,7 +4,7 @@ import FilterPanel from './components/FilterPanel';
 import FundTable from './components/FundTable';
 import StatsBar from './components/StatsBar';
 import DetailDrawer from './components/DetailDrawer';
-import { mapGrowwFundToSchema, fundNameToSlug } from './utils/groww-mapper';
+import { mapMfApiFundToSchema, fundNameToSlug } from './utils/groww-mapper';
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -46,7 +46,7 @@ export default function App() {
 
       // Handle different possible API response structures
       const fundList = Array.isArray(rawData) ? rawData : (rawData.data || []);
-      const mappedFunds = fundList.map(mapGrowwFundToSchema);
+      const mappedFunds = fundList.map(mapMfApiFundToSchema);
 
       setFunds(mappedFunds);
       setError(null);
