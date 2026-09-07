@@ -37,7 +37,7 @@ export default function App() {
       setIsLoading(forceRefresh ? false : true);
       if (forceRefresh) setIsRefreshing(true);
 
-      const url = `/.netlify/functions/get-funds${forceRefresh ? '?refresh=true' : ''}`;
+      const url = `/api/get-funds${forceRefresh ? '?refresh=true' : ''}`;
       const response = await fetch(url);
 
       if (!response.ok) throw new Error('Failed to fetch fund data');
