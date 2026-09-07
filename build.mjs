@@ -1,23 +1,31 @@
 /**
- * Custom build script using esbuild directly.
+ * Custom build script using esbuild + Tailwind PostCSS API directly.
  * Produces dist/index.html, dist/main.js, dist/styles.css
  */
 import esbuild from 'esbuild';
+import tailwindcss from 'tailwindcss';
+import postcss from 'postcss';
+import autoprefixer from 'autoprefixer';
 import fs from 'fs';
 
 const out = 'dist';
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 
-// 1. Build Tailwind CSS
+// 1. Build Tailwind CSS via PostCSS API
 console.log('Building Tailwind CSS...');
-const cssInput = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');\n@tailwind base;\n@tailwind components;\n@tailwind utilities;`;
-fs.writeFileSync('src/_tw_input.css', cssInput);
+const cssInput = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;`;
 
-import { execSync } from 'child_process';
-execSync('npx tailwindcss -i src/_tw_input.css -o dist/styles.css --minify', { stdio: 'inherit' });
+const result = await postcss([tailwindcss('./tailwind.config.js'), autoprefixer()]).process(cssInput, {
+  from: undefined,
+});
+let css = result.css;
+// minify manually (simple approach)
+css = css.replace(/\s+/g, ' ').replace(/;\s*}/g, '}').replace(/\{\s*/g, '{').replace(/\s*:\s*/g, ':').replace(/\s*;\s*/g, ';');
 
-// Append custom CSS (scrollbar, slider, body styles)
 const customCss = `
 :root { color-scheme: light dark; }
 html { scroll-behavior: smooth; }
@@ -41,7 +49,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius
 .animate-fade-in { animation: fadeIn 0.3s ease-out; }
 .animate-slide-up { animation: slideUp 0.4s ease-out; }
 `;
-fs.appendFileSync('dist/styles.css', customCss);
+fs.writeFileSync('dist/styles.css', css + customCss);
 
 // 2. Bundle JS with esbuild
 console.log('Bundling JS with esbuild...');
@@ -62,7 +70,7 @@ await esbuild.build({
 // 3. Copy favicon
 fs.copyFileSync('public/favicon.svg', 'dist/favicon.svg');
 
-// 4. Generate index.html (relative paths for GitHub Pages compatibility)
+// 4. Generate index.html (relative paths for GitHub Pages)
 const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -80,10 +88,7 @@ const html = `<!doctype html>
 </html>`;
 fs.writeFileSync('dist/index.html', html);
 
-// 5. Add netlify redirects for SPA (ignored by GitHub Pages, harmless)
+// 5. SPA redirects (for Netlify, harmless on GitHub Pages)
 fs.writeFileSync('dist/_redirects', '/*    /index.html   200\n');
 
-// cleanup
-fs.unlinkSync('src/_tw_input.css');
-
-console.log('✅ Build complete! Output in dist/');
+console.log('Build complete! Output in dist/');
