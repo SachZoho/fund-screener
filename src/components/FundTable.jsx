@@ -55,7 +55,7 @@ function SortHeader({ label, field, sort, onSort, className = '' }) {
   );
 }
 
-export default function FundTable({ funds, sort, onSort, onSelect }) {
+export default function FundTable({ funds, sort, onSort, onSelect, selectedId }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-card">
       <table className="w-full text-sm">
@@ -65,6 +65,48 @@ export default function FundTable({ funds, sort, onSort, onSelect }) {
             <SortHeader label="3Y" field="returns3Y" sort={sort} onSort={onSort} />
             <SortHeader label="5Y" field="returns5Y" sort={sort} onSort={onSort} />
             <SortHeader label="Max DD" field="maxDrawdown" sort={sort} onSort={onSort} />
+            <SortHeader label="Expense" field="expenseRatio" sort={sort} onSort={onSort} />
+            <SortHeader label="Sharpe" field="sharpeRatio" sort={sort} onSort={onSort} />
+            <SortHeader label="Age" field="fundAgeYears" sort={sort} onSort={onSort} />
+            <SortHeader label="AUM" field="aum" sort={sort} onSort={onSort} />
+            <SortHeader label="★" field="rating" sort={sort} onSort={onSort} />
+            <SortHeader label="Consistency" field="consistencyScore" sort={sort} onSort={onSort} />
+          </tr>
+        </thead>
+        <tbody>
+          {funds.map((f) => (
+            <tr
+              key={f.id}
+              onClick={() => onSelect(f)}
+              className={`border-b border-slate-100 dark:border-slate-800/60 cursor-pointer transition ${
+                selectedId === f.id
+                  ? 'bg-brand-50 dark:bg-brand-900/20 ring-1 ring-inset ring-brand-200 dark:ring-brand-800'
+                  : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+              }`}
+            >
+              <td className="px-4 py-3">
+                <div className="font-semibold text-slate-800 dark:text-slate-100">{f.name}</div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${categoryColor(f.category)}`}>{f.category} · {f.subCategory}</span>
+                  <span className="text-xs text-slate-400">{f.amcShort}</span>
+                </div>
+              </td>
+              <td className="px-4 py-3 text-center font-semibold tabular-nums"><span className={returnColor(f.returns3Y)}>{fmtPct(f.returns3Y)}</span></td>
+              <td className="px-4 py-3 text-center tabular-nums"><span className={returnColor(f.returns5Y)}>{fmtPct(f.returns5Y)}</span></td>
+              <td className="px-4 py-3 text-center tabular-nums"><span className={drawdownColor(f.maxDrawdown)}>{fmtPct(f.maxDrawdown)}</span></td>
+              <td className="px-4 py-3 text-center tabular-nums text-slate-600 dark:text-slate-300">{fmtPct(f.expenseRatio, 2)}</td>
+              <td className="px-4 py-3 text-center tabular-nums text-slate-600 dark:text-slate-300">{fmtNum(f.sharpeRatio)}</td>
+              <td className="px-4 py-3 text-center tabular-nums text-slate-600 dark:text-slate-300">{fmtAge(f.fundAgeYears)}</td>
+              <td className="px-4 py-3 text-center tabular-nums text-slate-600 dark:text-slate-300">{fmtCr(f.aum)}</td>
+              <td className="px-4 py-3 text-center"><StarRating rating={f.rating} /></td>
+              <td className="px-4 py-3"><ConsistencyBadge score={f.consistencyScore} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}sort} onSort={onSort} />
             <SortHeader label="Expense" field="expenseRatio" sort={sort} onSort={onSort} />
             <SortHeader label="Sharpe" field="sharpeRatio" sort={sort} onSort={onSort} />
             <SortHeader label="Age" field="fundAgeYears" sort={sort} onSort={onSort} />

@@ -79,9 +79,9 @@ export default function FilterPanel({ filters, setFilters, onReset }) {
         <span className="text-sm font-semibold text-red-500 dark:text-red-400">{fmtPct(filters.maxDrawdown, 0)}</span>
       </SliderRow>
 
-      <SliderRow label="Max Expense Ratio" value={filters.maxExpense} min={0.1} max={2.5} step={0.05} onChange={(v) => update('maxExpense', v)} suffix="%' />
+      <SliderRow label="Max Expense Ratio" value={filters.maxExpense} min={0.1} max={2.5} step={0.05} onChange={(v) => update('maxExpense', v)} suffix="%" />
 
-      <SliderRow label="Min 3-Year Return" value={filters.minReturn3Y} min={0} max={30} step={0.5} onChange={(v) => update('minReturn3Y', v)} suffix="%' />
+      <SliderRow label="Min 3-Year Return" value={filters.minReturn3Y} min={0} max={30} step={0.5} onChange={(v) => update('minReturn3Y', v)} suffix="%" />
 
       <SliderRow label="Min AUM" value={filters.minAUM} min={0} max={30000} step={500} onChange={(v) => update('minAUM', v)}>
         <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">{filters.minAUM >= 1000 ? `₹${(filters.minAUM / 1000).toFixed(1)}k Cr` : `₹${filters.minAUM} Cr`}</span>
