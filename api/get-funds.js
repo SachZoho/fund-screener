@@ -1,13 +1,13 @@
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
 // Simple in-memory cache
 const cache = {
   data: null,
   timestamp: 0,
 };
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours (Fund list doesn't change often)
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
-export default async function handler(req, res) {
+exports.handler = async (req, res) => {
   const { refresh } = req.query || {};
   const shouldRefresh = refresh === 'true';
 
@@ -17,7 +17,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Use the stable, open MFAPI.in endpoint for the fund list
     const response = await fetch('https://api.mfapi.in/mf', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -29,8 +28,6 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-
-    // Update cache
     cache.data = data;
     cache.timestamp = Date.now();
 
@@ -38,9 +35,6 @@ export default async function handler(req, res) {
     return res.status(200).json(data);
   } catch (error) {
     console.error('Error fetching from MFAPI:', error);
-    return res.status(500).json({
-      error: 'Failed to fetch fund data from MFAPI',
-      details: error.message
-    });
+    return res.status(500).json({ error: 'Failed to fetch fund data from MFAPI', details: error.message });
   }
-}
+};

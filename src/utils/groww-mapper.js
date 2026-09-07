@@ -1,13 +1,14 @@
 export const mapMfApiFundToSchema = (rawFund) => {
   // mfapi.in provides: schemeCode, schemeName
+  // Most other data is only available by calling /mf/{schemeCode}
   return {
     id: rawFund.schemeCode,
     name: rawFund.schemeName,
     amc: rawFund.schemeName.split(' ')[0], // Approximate AMC from name
     amcShort: rawFund.schemeName.split(' ')[0],
-    category: 'Equity', // Not provided by mfapi.in, will be filled by details scraper
+    category: 'Equity', // Default; updated by details scraper
     subCategory: 'Diversified',
-    nav: 0, // Fetched separately via /mf/{code}
+    nav: 0, // Fetched separately
     aum: 0,
     expenseRatio: 0,
     returns1Y: 0,
